@@ -84,3 +84,8 @@ export const verifypaymentApi = async(data)=>{
     const res =  await axiosInstance.post('/verify-payment',data)
     return res.data;
 }
+
+export const adminDashboardApi = async()=>{
+    const res = await axiosInstance.get('/admin/dashboard-stats')
+    return res.data;
+}

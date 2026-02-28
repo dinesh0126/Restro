@@ -4,7 +4,7 @@ import { HiMenu, HiX } from "react-icons/hi";
 
 const Sidebar = ({ role }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const location = useLocation(); // listen to route changes
+  const location = useLocation();
 
   const adminLinks = [
     { name: "Dashboard", path: "/admin" },
@@ -21,69 +21,67 @@ const Sidebar = ({ role }) => {
 
   const links = role === "admin" ? adminLinks : userLinks;
 
-  // Close mobile sidebar on route change
   useEffect(() => {
     setIsOpen(false);
   }, [location.pathname]);
 
   return (
     <>
-      {/* Mobile Hamburger Header */}
-      <div className="md:hidden flex items-center justify-between bg-gray-800 p-4 shadow-md">
-        <div className="text-2xl font-bold text-orange-400 truncate">
+      <header className="md:hidden fixed top-0 left-0 right-0 z-40 h-14 bg-gray-900 border-b border-gray-700 flex items-center justify-between px-4">
+        <div className="text-lg font-semibold text-orange-400 truncate">
           {role === "admin" ? "Admin Panel" : "User Panel"}
         </div>
         <button
-          onClick={() => setIsOpen(!isOpen)}
-          className="text-white text-3xl focus:outline-none"
+          onClick={() => setIsOpen((prev) => !prev)}
+          className="text-white text-3xl leading-none"
+          aria-label="Toggle sidebar"
         >
           {isOpen ? <HiX /> : <HiMenu />}
         </button>
-      </div>
+      </header>
 
-      {/* Sidebar */}
       <aside
-        className={`bg-gray-900 text-white fixed md:relative top-0 left-0 z-50 w-64 min-h-screen flex flex-col transform transition-transform duration-300 ease-in-out
-          ${isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
-        `}
+        className={`fixed md:static top-14 md:top-0 left-0 z-50 w-64 h-[calc(100vh-56px)] md:h-screen bg-gray-900 text-white transform transition-transform duration-300 ease-in-out
+          ${isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}`}
       >
-        {/* Sidebar Header */}
-        <div className="p-6 text-2xl font-bold text-orange-400 hidden md:block">
+        <div className="hidden md:block p-6 text-2xl font-bold text-orange-400">
           {role === "admin" ? "Admin Panel" : "User Panel"}
         </div>
 
-        {/* Navigation */}
-        <nav className="flex-1 mt-4 md:mt-0 overflow-y-auto">
-          {links.map((link) => (
-            <NavLink
-              key={link.path}
-              to={link.path}
-              className={({ isActive }) =>
-                `block px-6 py-3 md:px-4 md:py-2 hover:bg-gray-800 transition-colors duration-200 rounded-md mx-2 my-1 ${
-                  isActive ? "bg-gray-800 text-orange-400 font-semibold" : ""
-                }`
-              }
-            >
-              {link.name}
-            </NavLink>
-          ))}
+        <nav className="flex flex-col h-full overflow-y-auto py-4 md:py-0">
+          <div className="flex-1">
+            {links.map((link) => (
+              <NavLink
+                key={link.path}
+                to={link.path}
+                className={({ isActive }) =>
+                  `block px-6 py-3 hover:bg-gray-800 transition-colors duration-200 rounded-md mx-2 my-1 ${
+                    isActive ? "bg-gray-800 text-orange-400 font-semibold" : ""
+                  }`
+                }
+              >
+                {link.name}
+              </NavLink>
+            ))}
+          </div>
 
-          {/* Go Back Button */}
-          <Link
-            to="/"
-            className="mt-6 mx-4 block w-[calc(100%-2rem)] md:w-auto text-center bg-gray-800 hover:bg-gray-700 text-white font-medium rounded-lg px-4 py-2 transition-all duration-200 shadow-md hover:shadow-lg"
-          >
-            Go Back
-          </Link>
+          <div className="p-4">
+            <Link
+              to="/"
+              className="block w-full text-center bg-gray-800 hover:bg-gray-700 text-white font-medium rounded-lg px-4 py-2 transition"
+            >
+              Go Back
+            </Link>
+          </div>
         </nav>
       </aside>
 
-      {/* Overlay for Mobile */}
       {isOpen && (
-        <div
+        <button
+          className="fixed inset-0 top-14 bg-black/50 z-40 md:hidden"
           onClick={() => setIsOpen(false)}
-          className="fixed inset-0 bg-black opacity-50 z-40 md:hidden"
-        ></div>
+          aria-label="Close sidebar"
+        />
       )}
     </>
   );
