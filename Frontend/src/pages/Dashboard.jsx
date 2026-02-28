@@ -12,11 +12,13 @@ import {
   ResponsiveContainer,
   CartesianGrid,
 } from "recharts";
+import { useNavigate } from "react-router-dom";
 import { adminDashboardApi } from "../api/productapi";
 
 const PIE_COLORS = ["#22c55e", "#f59e0b", "#3b82f6", "#ef4444", "#a855f7"];
 
 export default function Dashboard() {
+  const navigate = useNavigate();
   const [dashboardData, setDashboardData] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -71,7 +73,15 @@ export default function Dashboard() {
   return (
     <div className="space-y-6 sm:space-y-8">
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold text-orange-400 mb-2">Admin Dashboard</h1>
+        <div className="flex items-center justify-between gap-3 mb-2">
+          <h1 className="text-2xl sm:text-3xl font-bold text-orange-400">Admin Dashboard</h1>
+          <button
+            onClick={() => navigate("/")}
+            className="px-3 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 text-sm"
+          >
+            Back
+          </button>
+        </div>
         <p className="text-gray-300">Live overview of orders, revenue, and performance.</p>
       </div>
 

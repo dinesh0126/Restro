@@ -6,7 +6,7 @@ import { authmiddleware,authroizeRole } from '../middleware.js/auth.js';
 import { allorders, updatorderstatus,fetchpaymentstatus } from '../controller/orderadmin.js';
 import { addcart, getcart, removecart, userprofile, clearCart } from '../controller/usercart.js';
 import { createorder, verifypayment } from '../controller/payment_controller.js';
-import { adminDashboardStats } from '../controller/dashboard.controller.js';
+import { adminDashboardStats, userDashboardStats } from '../controller/dashboard.controller.js';
 const router = express.Router();
 
 router.post('/register', register);
@@ -24,6 +24,7 @@ router.put("/updteitem/:id",upload.single("image"),updateitem)
 router.get("/allorders",allorders)
 router.put("/updateorder/:id",updatorderstatus)
 router.get("/admin/dashboard-stats",authmiddleware,authroizeRole(["admin"]),adminDashboardStats)
+router.get("/user/dashboard-stats",authmiddleware,authroizeRole(["user"]),userDashboardStats)
 
 // cart api 
 router.post('/addcart',authmiddleware,authroizeRole(["user"]),addcart)

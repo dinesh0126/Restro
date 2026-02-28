@@ -89,3 +89,8 @@ export const adminDashboardApi = async()=>{
     const res = await axiosInstance.get('/admin/dashboard-stats')
     return res.data;
 }
+
+export const userDashboardApi = async()=>{
+    const res = await axiosInstance.get('/user/dashboard-stats')
+    return res.data;
+}

@@ -1,4 +1,4 @@
-import  { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { getfooditems } from "../api/productapi.js";
 import { Link } from "react-router-dom";
 
@@ -10,9 +10,8 @@ const Foodpage = () => {
     const fetchfooditem = async () => {
       try {
         const result = await getfooditems();
-        setfooditem(result.data);
+        setfooditem(result.data || []);
       } catch (error) {
-        
         console.log("Error while fetching the product data", error);
       } finally {
         setLoading(false);
@@ -22,51 +21,57 @@ const Foodpage = () => {
     fetchfooditem();
   }, []);
 
-  if (loading)
+  if (loading) {
     return (
-      <div className="flex justify-center items-center h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black">
-        <p className="text-xl font-semibold text-white">Loading Food Items...</p>
-      </div>
-    );
-
-  return (
-   <div className="p-6 md:p-12 bg-gradient-to-br from-gray-900 via-gray-800 to-black min-h-screen text-white">
-  <h1 className="text-4xl md:text-6xl text-orange-400 font-semibold mt-6 mb-12 text-center drop-shadow-lg">
-    Our Delicious Food Items
-  </h1>
-
-  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-10">
-    {fooditem.map((food) => (
-      <div
-        key={food._id}
-        className="bg-gradient-to-b from-gray-800 to-gray-900 rounded-2xl shadow-xl overflow-hidden transform hover:scale-105 hover:shadow-2xl transition duration-300"
-      >
-        <img
-          src={food.image}
-          alt={food.name}
-          className="w-full h-52 object-cover"
-        />
-        <div className="p-6 flex flex-col justify-between">
-          <div>
-            <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">{food.name}</h2>
-            <p className="text-gray-300 mt-1 line-clamp-3 text-sm md:text-base">
-              {food.description}
-            </p>
-          </div>
-          <div className="mt-4 flex flex-col gap-3">
-            <p className="text-green-400 font-semibold text-lg md:text-xl">
-              ₹{food.price} / {food.unit || "plate"}
-            </p>
-          <Link to={`/fooditem/${food._id}`}>  <button className="w-full cursor-pointer px-5 py-3 bg-gradient-to-r from-blue-600 to-blue-800 text-white font-medium rounded-xl hover:from-blue-700 hover:to-blue-900 transition shadow-md">
-              Order Now
-            </button> </Link>
-          </div>
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 md:px-8">
+        <div className="ui-panel flex min-h-[240px] items-center justify-center rounded-2xl">
+          <p className="text-xl font-semibold text-white">Loading Food Items...</p>
         </div>
       </div>
-    ))}
-  </div>
-</div>
+    );
+  }
 
+  return (
+    <section className="mx-auto max-w-7xl px-4 sm:px-6 md:px-8">
+      <div className="ui-panel rounded-2xl p-6 md:p-8 text-white">
+        <h1 className="mb-10 text-center text-3xl font-semibold text-amber-400 md:text-left md:text-5xl">
+          Our Delicious Food Items
+        </h1>
+
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+          {fooditem.map((food) => (
+            <div
+              key={food._id}
+              className="overflow-hidden rounded-2xl border border-slate-700/60 bg-slate-900/70 shadow-xl transition duration-300 hover:-translate-y-1"
+            >
+              <img
+                src={food.image}
+                alt={food.name}
+                className="h-52 w-full object-cover"
+              />
+              <div className="flex flex-col justify-between p-6">
+                <div>
+                  <h2 className="mb-2 text-2xl font-bold text-white md:text-3xl">{food.name}</h2>
+                  <p className="mt-1 line-clamp-3 text-sm text-slate-300 md:text-base">
+                    {food.description}
+                  </p>
+                </div>
+                <div className="mt-4 flex flex-col gap-3">
+                  <p className="text-lg font-semibold text-emerald-400 md:text-xl">
+                    Rs {food.price} / {food.unit || "plate"}
+                  </p>
+                  <Link to={`/fooditem/${food._id}`}>
+                    <button className="w-full rounded-xl bg-amber-500 px-5 py-3 font-semibold text-black transition hover:bg-amber-400">
+                      Order Now
+                    </button>
+                  </Link>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
   );
 };
 

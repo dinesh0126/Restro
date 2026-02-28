@@ -7,17 +7,13 @@ import toast from "react-hot-toast";
 export default function Navbar() {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
-  const { role } = useAuthStore();
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
-  const clearUser = useAuthStore((state) => state.clearUser);
+  const { role, isAuthenticated, clearUser } = useAuthStore();
 
-
-  const removHandler = async () => {
+  const removeHandler = async () => {
     try {
-      const res = await logoutApi()
+      await logoutApi();
       clearUser();
-      const state = useAuthStore.getState();
-      toast.success("Logout Successfully");
+      toast.success("Logout successful");
       navigate("/login");
     } catch (error) {
       console.error(error);
@@ -25,120 +21,94 @@ export default function Navbar() {
     }
   };
 
-  return (
-    <nav className="bg-gray-900 text-white shadow-md">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-16">
-        <div className="flex items-center space-x-4">
-          <Link to="/" className="text-2xl font-bold text-orange-400">
-            RestoHub
-          </Link>
-        </div>
+  const dashboardPath = role === "admin" ? "/admin" : "/user";
 
-        {/* Desktop Menu */}
-        <div className="hidden md:flex space-x-6 items-center">
-          <Link to="/" className="hover:text-orange-400">
-            Home
-          </Link>
-          {isAuthenticated && role ? (
-            role === "admin" ? (
-              <Link to="/admin" className="hover:text-orange-400">
-                Dashboard
-              </Link>
-            ) : (
-              <Link to="/user" className="hover:text-orange-400">
-                Dashboard
-              </Link>
-            )
-          ) : (
-            ""
+  return (
+    <nav className="sticky top-0 z-40 border-b border-slate-700/50 bg-slate-950/85 backdrop-blur">
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+        <Link to="/" className="text-2xl font-extrabold tracking-tight text-amber-400">
+          RestoHub
+        </Link>
+
+        <div className="hidden items-center gap-5 md:flex">
+          <Link to="/" className="text-slate-200 transition hover:text-amber-400">Home</Link>
+          <Link to="/menu" className="text-slate-200 transition hover:text-amber-400">Menu</Link>
+
+          {isAuthenticated && (
+            <Link to={dashboardPath} className="text-slate-200 transition hover:text-amber-400">
+              Dashboard
+            </Link>
           )}
 
           {isAuthenticated ? (
             <button
-              onClick={removHandler}
-              className="bg-red-500 px-3 py-2 rounded-xl cursor-pointer hover:bg-red-600"
+              onClick={removeHandler}
+              className="rounded-lg bg-rose-500 px-3 py-2 text-sm font-semibold text-white transition hover:bg-rose-600"
             >
               Logout
             </button>
           ) : (
-            <>
+            <div className="flex items-center gap-2">
               <Link
                 to="/login"
-                className="bg-orange-500 px-3 py-2 rounded-xl hover:bg-orange-600"
+                className="rounded-lg bg-amber-500 px-3 py-2 text-sm font-semibold text-black transition hover:bg-amber-400"
               >
                 Login
               </Link>
               <Link
                 to="/register"
-                className="bg-green-500 px-3 py-2 rounded-xl hover:bg-green-600"
+                className="rounded-lg bg-emerald-500 px-3 py-2 text-sm font-semibold text-white transition hover:bg-emerald-600"
               >
                 Sign Up
               </Link>
-            </>
+            </div>
           )}
         </div>
 
-        {/* Mobile Menu Button */}
-        <div className="md:hidden">
-          <button onClick={() => setOpen(!open)}>
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              {open ? (
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              ) : (
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 6h16M4 12h16M4 18h16"
-                />
-              )}
-            </svg>
-          </button>
-        </div>
+        <button
+          onClick={() => setOpen((prev) => !prev)}
+          className="rounded-md p-1 text-slate-100 md:hidden"
+          aria-label="Toggle menu"
+        >
+          <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            {open ? (
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            ) : (
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            )}
+          </svg>
+        </button>
       </div>
 
-      {/* Mobile Menu */}
       {open && (
-        <div className="md:hidden px-4 pt-2 pb-4 space-y-2 bg-gray-800">
-          <Link to="/" className="block hover:text-orange-400">
-            Home
-          </Link>
-          <Link to="/menu" className="block hover:text-orange-400">
-            Menu
-          </Link>
+        <div className="space-y-2 border-t border-slate-700/40 bg-slate-900/95 px-4 py-3 md:hidden">
+          <Link to="/" onClick={() => setOpen(false)} className="block rounded-md px-2 py-2 text-slate-200 hover:bg-slate-800">Home</Link>
+          <Link to="/menu" onClick={() => setOpen(false)} className="block rounded-md px-2 py-2 text-slate-200 hover:bg-slate-800">Menu</Link>
+          {isAuthenticated && (
+            <Link to={dashboardPath} onClick={() => setOpen(false)} className="block rounded-md px-2 py-2 text-slate-200 hover:bg-slate-800">
+              Dashboard
+            </Link>
+          )}
 
           {isAuthenticated ? (
             <button
-              onClick={removHandler}
-              className="w-full text-left bg-red-500 px-3 py-2 rounded-xl hover:bg-red-600"
+              onClick={() => {
+                setOpen(false);
+                removeHandler();
+              }}
+              className="w-full rounded-md bg-rose-500 px-3 py-2 text-left text-sm font-semibold text-white"
             >
               Logout
             </button>
           ) : (
-            <>
-              <Link
-                to="/login"
-                className="block bg-orange-500 px-3 py-2 rounded-xl hover:bg-orange-600"
-              >
+            <div className="grid grid-cols-2 gap-2">
+              <Link to="/login" onClick={() => setOpen(false)} className="rounded-md bg-amber-500 px-3 py-2 text-center text-sm font-semibold text-black">
                 Login
               </Link>
-              <Link
-                to="/register"
-                className="block bg-green-500 px-3 py-2 rounded-xl hover:bg-green-600"
-              >
+              <Link to="/register" onClick={() => setOpen(false)} className="rounded-md bg-emerald-500 px-3 py-2 text-center text-sm font-semibold text-white">
                 Sign Up
               </Link>
-            </>
+            </div>
           )}
         </div>
       )}

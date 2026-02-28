@@ -1,32 +1,64 @@
 import Razorpay from "razorpay";
 import ApiError from "../utils/ApiError.js";
 import paymentmodel from "../models/payment.model.js";
+import User from "../models/user.model.js";
+import Order from "../models/order.model.js";
 import crypto from "crypto";
-const razorpayInstance = new Razorpay({
-  key_id: process.env.RAZORPAY_ID,
-  key_secret: process.env.RAZORPAY_SECREAT,
-});
+
+const getErrorMessage = (error, fallback) => {
+  return (
+    error?.error?.description ||
+    error?.message ||
+    error?.description ||
+    fallback
+  );
+};
+
+const getRazorpayInstance = () => {
+  const keyId = process.env.RAZORPAY_ID?.trim();
+  const keySecret = process.env.RAZORPAY_SECREAT?.trim();
+
+  if (!keyId || !keySecret) {
+    throw new ApiError(500, "Razorpay credentials are not configured");
+  }
+
+  return new Razorpay({
+    key_id: keyId,
+    key_secret: keySecret,
+  });
+};
 
 export const createorder = async (req, res) => {
   try {
     const { amount, orderId } = req.body;
-    const userId = req.user;
-    if (!amount || !orderId) {
-      throw new ApiError(400, "Amount and orderId is Required");
+    const userId = req.user?._id;
+    if (!userId) {
+      throw new ApiError(401, "Unauthorized user");
     }
+
+    const numericAmount = Number(amount);
+
+    if (!Number.isFinite(numericAmount) || numericAmount <= 0) {
+      throw new ApiError(400, "Valid amount is required");
+    }
+
+    const localOrderId = orderId || `ORDER_${Date.now()}`;
     const options = {
-      amount: amount * 100,
+      amount: Math.round(numericAmount * 100),
       currency: "INR",
-      receipt: `receipt_${orderId}`,
+      receipt: `receipt_${localOrderId}`.slice(0, 40),
     };
+
+    const razorpayInstance = getRazorpayInstance();
     const order = await razorpayInstance.orders.create(options);
     const payment = await paymentmodel.create({
       userId,
-      orderId,
+      orderId: localOrderId,
       razorpay_orderId: order.id,
-      amount,
+      amount: numericAmount,
       status: "created",
     });
+
     res.status(201).json({
       success: true,
       message: "Order Created successfully",
@@ -34,11 +66,14 @@ export const createorder = async (req, res) => {
       amount: order.amount,
       currency: order.currency,
       paymentId: payment._id,
-      key: process.env.RAZORPAY_ID,
+      key: process.env.RAZORPAY_ID?.trim(),
     });
   } catch (error) {
-    console.log(`Error while create the order ${error.message}`);
-    res.status(500).json({ success: false, message: error.message });
+    const message = error?.statusCode === 401
+      ? "Razorpay authentication failed. Check RAZORPAY_ID and RAZORPAY_SECREAT in Backend/.env"
+      : getErrorMessage(error, "Unable to create payment order");
+    console.error("Error while creating order:", error);
+    res.status(error?.statusCode || 500).json({ success: false, message });
   }
 };
 
@@ -60,27 +95,73 @@ export const verifypayment = async (req, res) => {
       .createHmac("sha256", process.env.RAZORPAY_SECREAT)
       .update(body.toString())
       .digest("hex");
-    console.log("this is your exprected sinature", expectedSignature);
+
     if (expectedSignature === razorpay_signature) {
-      const paymentverify = await paymentmodel.findByIdAndUpdate(paymentId, {
-        razorpay_payment_id,
-        razorpay_signature,
-        status: "paid",
+      let paymentverify = null;
+      if (paymentId) {
+        paymentverify = await paymentmodel.findById(paymentId);
+      }
+      if (!paymentverify) {
+        paymentverify = await paymentmodel.findOne({ razorpay_orderId: razorpay_order_id });
+      }
+      if (!paymentverify) {
+        throw new ApiError(404, "Payment record not found");
+      }
+      if (paymentverify.status === "paid") {
+        return res.status(200).json({ success: true, message: "Payment already verified" });
+      }
+
+      paymentverify.razorpay_paymentId = razorpay_payment_id;
+      paymentverify.razorpay_signature = razorpay_signature;
+      paymentverify.status = "paid";
+      await paymentverify.save();
+
+      const user = await User.findById(req.user._id).populate("cart.food");
+      if (!user) {
+        throw new ApiError(404, "User not found");
+      }
+      if (!user.cart?.length) {
+        throw new ApiError(400, "Cart is empty");
+      }
+
+      const orderItems = user.cart.map((item) => ({
+        food: item.food?._id || item.food,
+        quantity: item.quantity,
+        option: item.options || "",
+      }));
+      const totalPrice = user.cart.reduce((sum, item) => sum + (item.totalPrice || 0), 0);
+
+      await Order.create({
+        user: req.user._id,
+        items: orderItems,
+        totalPrice,
+        status: "confirmed",
       });
-      
+
+      user.cart = [];
+      await user.save();
+
       return res
         .status(200)
         .json({ success: true, message: "Pyment verify successfully" });
     } else {
-      await paymentmodel.findByIdAndUpdate(paymentId, {
-        status: "failed",
-      });
+      if (paymentId) {
+        await paymentmodel.findByIdAndUpdate(paymentId, {
+          status: "failed",
+        });
+      } else {
+        await paymentmodel.findOneAndUpdate(
+          { razorpay_orderId: razorpay_order_id },
+          { status: "failed" }
+        );
+      }
       return res
         .status(500)
         .json({ success: false, message: "Payment verification failed" });
     }
   } catch (error) {
-    console.log("Error while verify the order ", error.message);
-    res.status(500).json({ success: false, message: error.message });
+    const message = getErrorMessage(error, "Unable to verify payment");
+    console.error("Error while verifying order:", error);
+    res.status(error?.statusCode || 500).json({ success: false, message });
   }
 };

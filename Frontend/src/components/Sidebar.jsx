@@ -27,36 +27,41 @@ const Sidebar = ({ role }) => {
 
   return (
     <>
-      <header className="md:hidden fixed top-0 left-0 right-0 z-40 h-14 bg-gray-900 border-b border-gray-700 flex items-center justify-between px-4">
-        <div className="text-lg font-semibold text-orange-400 truncate">
+      <header className="fixed left-0 right-0 top-0 z-40 flex h-14 items-center justify-between border-b border-slate-700/60 bg-slate-950/90 px-4 backdrop-blur md:hidden">
+        <div className="truncate text-lg font-semibold text-amber-400">
           {role === "admin" ? "Admin Panel" : "User Panel"}
         </div>
         <button
           onClick={() => setIsOpen((prev) => !prev)}
-          className="text-white text-3xl leading-none"
+          className="rounded-md p-1 text-white"
           aria-label="Toggle sidebar"
         >
-          {isOpen ? <HiX /> : <HiMenu />}
+          {isOpen ? <HiX size={26} /> : <HiMenu size={26} />}
         </button>
       </header>
 
       <aside
-        className={`fixed md:static top-14 md:top-0 left-0 z-50 w-64 h-[calc(100vh-56px)] md:h-screen bg-gray-900 text-white transform transition-transform duration-300 ease-in-out
-          ${isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}`}
+        className={`fixed left-0 top-14 z-50 flex h-[calc(100vh-56px)] w-72 flex-col border-r border-slate-700/50 bg-slate-950/95 text-white backdrop-blur transition-transform duration-300 md:fixed md:top-0 md:h-screen md:translate-x-0
+          ${isOpen ? "translate-x-0" : "-translate-x-full"}`}
       >
-        <div className="hidden md:block p-6 text-2xl font-bold text-orange-400">
-          {role === "admin" ? "Admin Panel" : "User Panel"}
+        <div className="hidden border-b border-slate-700/50 p-6 md:block">
+          <div className="text-2xl font-bold text-amber-400">
+            {role === "admin" ? "Admin Panel" : "User Panel"}
+          </div>
+          <p className="mt-1 text-sm text-slate-400">Manage your workspace efficiently</p>
         </div>
 
-        <nav className="flex flex-col h-full overflow-y-auto py-4 md:py-0">
-          <div className="flex-1">
+        <nav className="flex min-h-0 flex-1 flex-col overflow-y-auto py-4 md:py-5">
+          <div className="flex-1 px-3">
             {links.map((link) => (
               <NavLink
                 key={link.path}
                 to={link.path}
                 className={({ isActive }) =>
-                  `block px-6 py-3 hover:bg-gray-800 transition-colors duration-200 rounded-md mx-2 my-1 ${
-                    isActive ? "bg-gray-800 text-orange-400 font-semibold" : ""
+                  `mb-2 block rounded-lg px-4 py-3 text-sm font-medium transition ${
+                    isActive
+                      ? "bg-amber-500/20 text-amber-300 border border-amber-400/30"
+                      : "text-slate-200 hover:bg-slate-800 hover:text-white"
                   }`
                 }
               >
@@ -65,12 +70,12 @@ const Sidebar = ({ role }) => {
             ))}
           </div>
 
-          <div className="p-4">
+          <div className="px-4 pb-4">
             <Link
               to="/"
-              className="block w-full text-center bg-gray-800 hover:bg-gray-700 text-white font-medium rounded-lg px-4 py-2 transition"
+              className="block w-full rounded-lg bg-slate-800 px-4 py-2.5 text-center text-sm font-semibold text-white transition hover:bg-slate-700"
             >
-              Go Back
+              Back To Home
             </Link>
           </div>
         </nav>
@@ -78,7 +83,7 @@ const Sidebar = ({ role }) => {
 
       {isOpen && (
         <button
-          className="fixed inset-0 top-14 bg-black/50 z-40 md:hidden"
+          className="fixed inset-0 top-14 z-40 bg-black/55 md:hidden"
           onClick={() => setIsOpen(false)}
           aria-label="Close sidebar"
         />

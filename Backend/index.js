@@ -13,8 +13,8 @@ app.use(cors({
   credentials: true,               
 }));
 app.use(express.json())
-app.use(globalErrorHandler)
 app.use("/api/v1",userroute)
+app.use(globalErrorHandler)
 app.listen(process.env.PORT,()=>{
     console.log("App listen on port number ",process.env.PORT)
 })
