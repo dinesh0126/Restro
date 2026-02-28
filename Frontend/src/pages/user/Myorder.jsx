@@ -76,6 +76,15 @@ const MyOrder = () => {
         name: "Restro",
         description: "Food order payment",
         order_id: result.orderId,
+        // Disable card flow to avoid international-card restriction errors.
+        method: {
+          card: false,
+          upi: true,
+          netbanking: true,
+          wallet: true,
+          emi: false,
+          paylater: false,
+        },
         handler: async (response) => {
           try {
             const verify = await verifypaymentApi({
@@ -104,8 +113,25 @@ const MyOrder = () => {
       const rzp = new window.Razorpay(options);
       rzp.open();
       rzp.on("payment.failed", (response) => {
-        toast.error("Payment failed");
-        console.error("Payment error:", response?.error);
+        const razorpayError = response?.error || {};
+        const isInternationalBlocked =
+          razorpayError?.reason === "international_transaction_not_allowed";
+        const message =
+          isInternationalBlocked
+            ? "Cards are disabled for this merchant in test mode. Please use UPI or netbanking."
+            :
+          razorpayError.description ||
+          razorpayError.reason ||
+          "Payment failed";
+        toast.error(message);
+        console.error("Payment error details:", {
+          code: razorpayError.code,
+          description: razorpayError.description,
+          source: razorpayError.source,
+          step: razorpayError.step,
+          reason: razorpayError.reason,
+          metadata: razorpayError.metadata,
+        });
       });
     } catch (error) {
       console.log("Error in Razorpay checkout:", error);

@@ -1,8 +1,10 @@
 import axios from 'axios'
 import useAuthStore from '../store/authstore'
 
-const API_URL = import.meta.env.VITE_BASE_URL
-console.log(API_URL)
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL
+const API_URL =
+    import.meta.env.VITE_API_BASE_URL ||
+    (BACKEND_URL ? `${BACKEND_URL.replace(/\/$/, "")}/api/v1` : "")
 
 const axiosInstance = axios.create({
     baseURL: API_URL, 
