@@ -4,13 +4,16 @@ import user from "../models/user.model.js";
 
 export const authmiddleware = async(req,res,next)=>{
    try {
-    const token = req.cookies?.accessToken || req.headers.authorization?.replace("Bearer ", "").trim()
-    console.log(token)
+    const authHeader = req.headers.authorization || req.headers.Authorization
+    const tokenFromHeader = typeof authHeader === "string"
+      ? authHeader.replace(/^Bearer\s+/i, "").trim()
+      : null
+    const token = req.cookies?.accessToken || tokenFromHeader
+
     if(!token){
         throw new ApiError(401,"Unauthorize : No token provided")
     }
     const decode = jwt.verify(token,process.env.ACCESS_TOKEN_KEY)
-    console.log(decode)
 
     const myuser = await user.findById(decode._id).select("-password")
     if(!myuser){

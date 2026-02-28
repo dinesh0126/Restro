@@ -7,6 +7,7 @@ const useAuthStore = create(
       user: null,
       isAuthenticated: false,
       role: null,
+      accessToken: null,
 
       setUser: (user) => {
         console.log("Setting user:", user); // DEBUG
@@ -14,6 +15,7 @@ const useAuthStore = create(
           user: user || null,
           isAuthenticated: !!user,        // <-- true if user exists
           role: user?.role ?? "user",     // <-- default to "user"
+          accessToken: user?.accessToken ?? null,
         });
       },
 
@@ -23,6 +25,7 @@ const useAuthStore = create(
           user: null,
           isAuthenticated: false,
           role: null,
+          accessToken: null,
         });
       },
     }),

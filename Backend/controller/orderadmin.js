@@ -31,7 +31,7 @@ export const updatorderstatus = async (req, res, next) => {
       throw new ApiError(400, "Order not found");
     }
 
-    order.status = status.toLowerCase(); // save lowercase consistently
+    order.status = status.toLowerCase();
     await order.save();
 
     res.status(200).json({ success: true, message: 'Order status updated successfully', data: order });

@@ -74,7 +74,7 @@ const handleCheckout = async () => {
       order_id: result.orderId,
       handler: async function (response) {
         try {
-          // Verify payment by sending data to backend
+          
           const verify = await verifypaymentApi({
             paymentId: result.paymentId,
             razorpay_order_id: response.razorpay_order_id,

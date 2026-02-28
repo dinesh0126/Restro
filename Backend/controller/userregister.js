@@ -81,6 +81,7 @@ export const login = async (req, res, next) => {
         success: true,
         message: "You are successfully logged in",
         role: existencuser.role,
+        accessToken,
       });
 
   } catch (err) {
